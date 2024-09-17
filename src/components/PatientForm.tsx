@@ -2,11 +2,36 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import Error from "./Error";
 import { PatientDraft } from "../types";
 import { usePatientStore } from "../store";
+import { useEffect } from "react";
+import { toast } from "react-toastify";
 
 export default function PatientForm() {
     const addPatient = usePatientStore( state => state.addPatient);
+    const activeId = usePatientStore( state => state.activeId);
+    const patients = usePatientStore( state => state.patients);
+    const updatePatient = usePatientStore( state => state.updatePatient);
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<PatientDraft>();
+    const { register, handleSubmit, reset, formState: { errors }, setValue } = useForm<PatientDraft>();
+
+    useEffect(() => {
+        if(activeId) {
+            const activePatient = patients.filter(patient => patient.id === activeId)[0];
+            setValue('name', activePatient.name);
+            setValue('caretaker', activePatient.caretaker);
+            setValue('email', activePatient.email);
+            setValue('date', activePatient.date);
+            setValue('symptoms', activePatient.symptoms);
+
+            // const activePatient = patients.find(patient => patient.id === activeId);
+            // if(activePatient) {
+            //     setValue("name", activePatient.name);
+            //     setValue("caretaker", activePatient.caretaker);
+            //     setValue("email", activePatient.email);
+            //     setValue("date", activePatient.date.toString());
+            //     setValue("symptoms", activePatient.symptoms);
+            // }
+        }
+    }, [activeId])
 
     const registerPatient: SubmitHandler<PatientDraft> = data => {
         const trimmedData = {
@@ -16,7 +41,20 @@ export default function PatientForm() {
             email: data.email.trim(),
             symptoms: data.symptoms.trim()
         }
-        addPatient(trimmedData);
+
+        if(activeId) {
+            updatePatient(trimmedData)
+            toast.success('Paciente actualizado correctamente', {
+                autoClose: 2000,
+                theme: 'colored'
+            })
+        } else {
+            addPatient(trimmedData);
+            toast.success('Paciente añadido correctamente', {
+                autoClose: 2000,
+                theme: 'colored'
+            })
+        }
         reset();
     }
 
@@ -26,13 +64,13 @@ export default function PatientForm() {
                 Seguimiento Pacientes
             </h2>
 
-            <p className="text-lg mt-5 text-center mb-10">
+            <p className="text-lg mt-5 text-center mb-5 md:mb-10">
                 Añade Pacientes y {""}
                 <span className="text-indigo-600 font-bold">Administralos</span>
             </p>
 
             <form
-                className="bg-white shadow-md rounded-lg py-10 px-5 mb-10"
+                className="bg-white shadow-md rounded-lg py-10 px-5 mb-14 md:mb-10"
                 noValidate
                 onSubmit={handleSubmit(registerPatient)}
             >
@@ -169,7 +207,7 @@ export default function PatientForm() {
                 <input
                     type="submit"
                     className="bg-indigo-600 w-full p-3 text-white uppercase font-bold hover:bg-indigo-700 cursor-pointer transition-colors"
-                    value="Guardar Paciente"
+                    value={activeId ? 'Actualizar Paciente' : 'Guardar Paciente'}
                 />
             </form>
         </div>
