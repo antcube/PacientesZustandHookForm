@@ -3,6 +3,7 @@ import { Patient } from "../types"
 import PatientDetailItem from "./PatientDetailItem"
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/solid"
 import { toast } from "react-toastify"
+import { format } from "date-fns"
 
 type PatientDetailsProps = {
     patient: Patient
@@ -20,6 +21,10 @@ export default function PatientDetails({patient}: PatientDetailsProps) {
         })
     }
 
+    const formatDate: string = Array.isArray(patient.date) 
+        ? patient.date.map(d => d ? format(d, 'dd/MM/yyyy') : 'Sin fecha').join(' - ') 
+        : patient.date ? format(patient.date, 'dd/MM/yyyy') : 'Sin fecha';
+        
     return (
         <div className="mx-5 mb-10 px-5 py-10 shadow-md rounded-xl bg-white">
             <PatientDetailItem 
@@ -40,7 +45,7 @@ export default function PatientDetails({patient}: PatientDetailsProps) {
             />
             <PatientDetailItem 
                 label='Fecha Alta'
-                data={patient.date.toString()}
+                data={formatDate}
             />
             <PatientDetailItem 
                 label='Síntomas'

@@ -1,9 +1,12 @@
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import Error from "./Error";
-import { PatientDraft } from "../types";
+import { PatientDraft, Value } from "../types";
 import { usePatientStore } from "../store";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
+import DatePicker from "react-date-picker";
+import "react-date-picker/dist/DatePicker.css";
+import "react-calendar/dist/Calendar.css";
 
 export default function PatientForm() {
     const addPatient = usePatientStore( state => state.addPatient);
@@ -11,7 +14,7 @@ export default function PatientForm() {
     const patients = usePatientStore( state => state.patients);
     const updatePatient = usePatientStore( state => state.updatePatient);
 
-    const { register, handleSubmit, reset, formState: { errors }, setValue } = useForm<PatientDraft>();
+    const { register, handleSubmit, control, reset, formState: { errors }, setValue } = useForm<PatientDraft>();
 
     useEffect(() => {
         if(activeId) {
@@ -57,6 +60,12 @@ export default function PatientForm() {
         }
         reset();
     }
+
+    const tomorrow = useMemo(() => {
+        const date = new Date();
+        date.setDate(date.getDate() + 1);
+        return date;
+    }, []);
 
     return (
         <div className="md:w-1/2 lg:w-2/5 mx-5">
@@ -163,13 +172,29 @@ export default function PatientForm() {
                     >
                         Fecha Alta
                     </label>
-                    <input
+                    {/* <input
                         id="date"
                         className="w-full p-3  border border-gray-100"
                         type="date"
                         {...register('date', {
                             required: 'La fecha de alta es obligatoria'
                         })}
+                    /> */}
+                    <Controller 
+                        name="date"
+                        control={control}
+                        render={({ field }) => (
+                            <DatePicker
+                                id="date"
+                                className="w-full p-3  border border-gray-100"
+                                value={field.value}
+                                onChange={(date: Value) => {
+                                    field.onChange(date);
+                                }}
+                                minDate={tomorrow}
+                            />
+                        )}
+                        rules={{required: 'La fecha de alta es obligatoria'}}
                     />
                     {errors.date && (
                         <Error>
